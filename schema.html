@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dagsschema med bildstöd</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FAF9F6;
+      color: #2C2925;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: #2C2925;
+      margin-bottom: 0.4rem;
+    }
+
+    header p {
+      color: #918B82;
+      font-size: 1rem;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 1100px;
+      padding: 1rem;
+    }
+
+    /* Schema timeline */
+    .schema-area {
+      width: 100%;
+      min-height: 200px;
+      background: white;
+      border: 2px dashed #E0DBD3;
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .schema-area.active {
+      border-color: #6B8CA6;
+      border-style: solid;
+      box-shadow: 0 0 0 3px rgba(107, 140, 166, 0.15);
+    }
+
+    .schema-area.has-items {
+      border-style: solid;
+      border-color: #E0DBD3;
+    }
+
+    .schema-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 160px;
+      color: #918B82;
+      text-align: center;
+      gap: 0.5rem;
+    }
+
+    .schema-empty .icon {
+      font-size: 2.5rem;
+      opacity: 0.3;
+    }
+
+    .schema-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .schema-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #FDFBF8;
+      border: 2px solid #E0DBD3;
+      border-radius: 16px;
+      padding: 0.8rem;
+      width: 110px;
+      cursor: grab;
+      transition: all 0.2s ease;
+      position: relative;
+      animation: cardPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes cardPop {
+      0% { transform: scale(0.3) translateY(20px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    .schema-card:hover {
+      border-color: #6B8CA6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .schema-card img {
+      width: 70px;
+      height: 70px;
+      object-fit: contain;
+      margin-bottom: 0.4rem;
+    }
+
+    .schema-card .card-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2C2925;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    .schema-card .card-remove {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #C75A3A;
+      color: white;
+      border: 2px solid white;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .schema-card:hover .card-remove {
+      display: flex;
+    }
+
+    /* Arrow between cards */
+    .schema-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #C8C2B8;
+      font-size: 1.5rem;
+      padding: 0 0.1rem;
+      align-self: center;
+      animation: cardPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Controls row */
+    .controls {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .mic-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: none;
+      background: #6B8CA6;
+      color: white;
+      font-size: 1.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .mic-btn:hover {
+      background: #5A7B95;
+      transform: scale(1.05);
+    }
+
+    .mic-btn.listening {
+      background: #C75A3A;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(199, 90, 58, 0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(199, 90, 58, 0); }
+    }
+
+    .ctrl-btn {
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      border: 1px solid #E0DBD3;
+      background: #FDFBF8;
+      color: #5C564F;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .ctrl-btn:hover {
+      border-color: #6B8CA6;
+      color: #2C2925;
+      background: white;
+    }
+
+    .ctrl-btn.danger:hover {
+      border-color: #C75A3A;
+      color: #C75A3A;
+    }
+
+    .mic-label {
+      font-size: 0.85rem;
+      color: #918B82;
+    }
+
+    /* Transcript */
+    .transcript {
+      width: 100%;
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      min-height: 50px;
+      margin-bottom: 1.5rem;
+    }
+
+    .transcript-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #918B82;
+      margin-bottom: 0.3rem;
+    }
+
+    .transcript-text {
+      font-size: 1rem;
+      color: #2C2925;
+      line-height: 1.5;
+    }
+
+    .transcript-text .highlight {
+      background: #6B8CA6;
+      color: white;
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Word bank */
+    .word-bank {
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .word-bank-toggle {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #918B82;
+      margin-bottom: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: none;
+      background: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .word-bank-toggle:hover { color: #6B8CA6; }
+
+    .word-bank-toggle .arrow {
+      transition: transform 0.2s;
+    }
+
+    .word-bank-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+
+    .word-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .word-chips.hidden { display: none; }
+
+    .word-chip {
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 10px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      color: #5C564F;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'Inter', sans-serif;
+      border: 1px solid #E0DBD3;
+    }
+
+    .word-chip:hover {
+      border-color: #6B8CA6;
+      color: #2C2925;
+      background: white;
+    }
+
+    .word-chip img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .not-supported {
+      text-align: center;
+      padding: 3rem;
+      color: #C75A3A;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 1rem;
+      color: #918B82;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    footer a {
+      color: #6B8CA6;
+      text-decoration: none;
+    }
+
+    /* Print styles */
+    @media print {
+      body { background: white; }
+      .controls, .transcript, .word-bank, .mic-btn, footer, .card-remove, .not-supported { display: none !important; }
+      .schema-area { border: none; box-shadow: none; padding: 0; }
+      .schema-card { break-inside: avoid; }
+      header p { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dagsschema med bildstöd</h1>
+    <p>Prata och bygg upp ett visuellt schema i realtid</p>
+  </header>
+
+  <div class="main" id="app">
+    <div class="schema-area" id="schemaArea">
+      <div class="schema-empty" id="schemaEmpty">
+        <div class="icon">📋</div>
+        <div>Tryck på mikrofonen och berätta om dagen.<br>Schemat byggs upp automatiskt.</div>
+      </div>
+      <div class="schema-cards" id="schemaCards"></div>
+    </div>
+
+    <div class="controls">
+      <button class="mic-btn" id="micBtn" onclick="toggleListening()">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <span class="mic-label" id="micLabel">Starta mikrofonen</span>
+      <button class="ctrl-btn" onclick="undoLast()">↩ Ångra</button>
+      <button class="ctrl-btn" onclick="printSchema()">🖨 Skriv ut</button>
+      <button class="ctrl-btn danger" onclick="clearSchema()">Rensa allt</button>
+    </div>
+
+    <div class="transcript">
+      <div class="transcript-label">Hör</div>
+      <div class="transcript-text" id="transcript">—</div>
+    </div>
+
+    <div class="word-bank">
+      <button class="word-bank-toggle" onclick="toggleWordBank()">
+        <span class="arrow" id="wbArrow">▶</span> Tillgängliga ord i bildbanken
+      </button>
+      <div class="word-chips hidden" id="wordChips"></div>
+    </div>
+  </div>
+
+  <footer>
+    Piktogram från <a href="https://arasaac.org" target="_blank">ARASAAC</a> — Creative Commons BY-NC-SA
+    &nbsp;|&nbsp; <a href="/">Bildstöd i realtid</a>
+  </footer>
+
+  <div class="not-supported" id="notSupported" style="display:none;">
+    <p>Din webbläsare stöder inte taligenkänning.<br>Testa i Google Chrome på en dator.</p>
+  </div>
+
+  <script>
+    const pictoBase = '/picto';
+
+    const signs = [
+      // Hälsningar
+      { words: ['hej', 'hejdå', 'hallå'], id: 6522, label: 'Hej' },
+      { words: ['god morgon'], id: 25704, label: 'God morgon' },
+      // Skolämnen
+      { words: ['matte', 'matematik'], id: 32554, label: 'Matematik' },
+      { words: ['svenska', 'svenskan'], id: 4919, label: 'Svenska' },
+      { words: ['engelska', 'engelskan'], id: 32705, label: 'Engelska' },
+      { words: ['musik', 'musiken'], id: 24791, label: 'Musik' },
+      { words: ['idrott', 'sport', 'idrottslektionen'], id: 7010, label: 'Idrott' },
+      { words: ['slöjd', 'slöjden'], id: 16339, label: 'Slöjd' },
+      { words: ['bild', 'bilden'], id: 2396, label: 'Bild' },
+      { words: ['no', 'naturkunskap'], id: 32542, label: 'NO' },
+      // Aktiviteter
+      { words: ['samling', 'samlingen'], id: 9913, label: 'Samling' },
+      { words: ['rast', 'rasten'], id: 11599, label: 'Rast' },
+      { words: ['lunch', 'lunchen'], id: 4610, label: 'Lunch' },
+      { words: ['fika', 'fikat'], id: 37360, label: 'Fika' },
+      { words: ['läsa', 'läsning', 'läser'], id: 6061, label: 'Läsa' },
+      { words: ['skriva', 'skrivning', 'skriver'], id: 8195, label: 'Skriva' },
+      { words: ['lära', 'lär', 'lärande'], id: 37810, label: 'Lära' },
+      { words: ['grupparbete', 'grupparbetet'], id: 37366, label: 'Grupparbete' },
+      { words: ['individuellt'], id: 37721, label: 'Individuellt' },
+      { words: ['fråga', 'frågor'], id: 9847, label: 'Frågor' },
+      { words: ['prov', 'provet'], id: 32464, label: 'Prov' },
+      { words: ['arbeta', 'arbetar', 'jobba', 'jobbar'], id: 6936, label: 'Arbeta' },
+      { words: ['lyssna', 'lyssnar', 'lyssnande'], id: 25381, label: 'Lyssna' },
+      { words: ['prata', 'pratar', 'berätta', 'berättar'], id: 6068, label: 'Prata' },
+      { words: ['titta', 'tittar', 'se'], id: 6456, label: 'Titta' },
+      { words: ['tänka', 'tänker', 'fundera', 'funderar'], id: 14991, label: 'Tänka' },
+      { words: ['rita', 'ritar', 'ritning'], id: 30510, label: 'Rita' },
+      { words: ['sjunga', 'sjunger', 'sång'], id: 31310, label: 'Sjunga' },
+      { words: ['dator', 'datorn', 'datorer'], id: 6028, label: 'Dator' },
+      // Tider
+      { words: ['idag', 'dagen'], id: 7131, label: 'Idag' },
+      { words: ['morgon', 'morgonen'], id: 25704, label: 'Morgon' },
+      { words: ['eftermiddag', 'eftermiddagen'], id: 7268, label: 'Eftermiddag' },
+      // Logistik
+      { words: ['taxi', 'taxin'], id: 2580, label: 'Taxi' },
+      { words: ['slut', 'slutet', 'klart'], id: 32814, label: 'Slut' },
+      { words: ['fritids', 'fritidshem', 'fritidshemmet'], id: 24615, label: 'Fritids' },
+      { words: ['hem', 'hemma'], id: 34545, label: 'Hem' },
+      // Känslor
+      { words: ['glad', 'glada', 'glatt'], id: 6190, label: 'Glad' },
+      { words: ['ledsen', 'ledsna'], id: 8715, label: 'Ledsen' },
+      // Mat
+      { words: ['äta', 'äter', 'mat', 'maten'], id: 4556, label: 'Mat' },
+      { words: ['dricka', 'dricker', 'vatten'], id: 31999, label: 'Dricka' },
+      { words: ['kaffe', 'kaffet'], id: 36922, label: 'Kaffe' },
+      { words: ['frukt', 'frukten'], id: 28339, label: 'Frukt' },
+      // Övrigt
+      { words: ['toalett', 'toaletten', 'toa'], id: 24925, label: 'Toalett' },
+      { words: ['hjälp', 'hjälpa', 'hjälper'], id: 8148, label: 'Hjälp' },
+      { words: ['bra', 'bäst', 'utmärkt'], id: 2912, label: 'Bra' },
+      { words: ['nej', 'inte'], id: 5899, label: 'Nej' },
+      { words: ['ja', 'javisst', 'japp'], id: 5306, label: 'Ja' },
+      { words: ['vänta', 'väntar'], id: 11228, label: 'Vänta' },
+      { words: ['stopp', 'stop', 'sluta'], id: 2521, label: 'Stopp' },
+    ];
+
+    function pictoUrl(id) {
+      return `${pictoBase}/${id}.png`;
+    }
+
+    // Schema state
+    let schemaItems = [];
+
+    function addToSchema(sign) {
+      schemaItems.push(sign);
+      renderSchema();
+    }
+
+    function removeFromSchema(index) {
+      schemaItems.splice(index, 1);
+      renderSchema();
+    }
+
+    function undoLast() {
+      if (schemaItems.length === 0) return;
+      schemaItems.pop();
+      renderSchema();
+    }
+
+    function clearSchema() {
+      if (schemaItems.length === 0) return;
+      schemaItems = [];
+      renderSchema();
+    }
+
+    function printSchema() {
+      window.print();
+    }
+
+    function renderSchema() {
+      const container = document.getElementById('schemaCards');
+      const empty = document.getElementById('schemaEmpty');
+      const area = document.getElementById('schemaArea');
+
+      if (schemaItems.length === 0) {
+        empty.style.display = 'flex';
+        container.innerHTML = '';
+        area.classList.remove('has-items');
+        return;
+      }
+
+      empty.style.display = 'none';
+      area.classList.add('has-items');
+      container.innerHTML = '';
+
+      schemaItems.forEach((sign, i) => {
+        if (i > 0) {
+          const arrow = document.createElement('div');
+          arrow.className = 'schema-arrow';
+          arrow.textContent = '→';
+          arrow.style.animationDelay = '0s';
+          container.appendChild(arrow);
+        }
+
+        const card = document.createElement('div');
+        card.className = 'schema-card';
+        card.innerHTML = `
+          <button class="card-remove" onclick="removeFromSchema(${i})" title="Ta bort">✕</button>
+          <img src="${pictoUrl(sign.id)}" alt="${sign.label}">
+          <div class="card-label">${sign.label}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Word bank
+    const chipsContainer = document.getElementById('wordChips');
+    signs.forEach((sign) => {
+      const chip = document.createElement('button');
+      chip.className = 'word-chip';
+      chip.innerHTML = `<img src="${pictoUrl(sign.id)}" alt="${sign.label}"> ${sign.label}`;
+      chip.onclick = () => addToSchema(sign);
+      chipsContainer.appendChild(chip);
+    });
+
+    function toggleWordBank() {
+      const chips = document.getElementById('wordChips');
+      const arrow = document.getElementById('wbArrow');
+      chips.classList.toggle('hidden');
+      arrow.classList.toggle('open');
+    }
+
+    // Speech recognition
+    let recognition = null;
+    let isListening = false;
+
+    function findSign(text) {
+      const words = text.toLowerCase().split(/\s+/);
+      for (let i = words.length - 1; i >= 0; i--) {
+        const word = words[i].replace(/[.,!?]/g, '');
+        for (let j = 0; j < signs.length; j++) {
+          if (signs[j].words.includes(word)) {
+            return j;
+          }
+        }
+      }
+      return -1;
+    }
+
+    function highlightWords(text) {
+      const allKeywords = signs.flatMap(s => s.words);
+      return text.replace(/\S+/g, (word) => {
+        const clean = word.toLowerCase().replace(/[.,!?]/g, '');
+        if (allKeywords.includes(clean)) {
+          return `<span class="highlight">${word}</span>`;
+        }
+        return word;
+      });
+    }
+
+    function toggleListening() {
+      if (isListening) stopListening();
+      else startListening();
+    }
+
+    function startListening() {
+      if (!recognition) return;
+      recognition.start();
+      isListening = true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micLabel').textContent = 'Lyssnar...';
+      document.getElementById('schemaArea').classList.add('active');
+    }
+
+    function stopListening() {
+      if (!recognition) return;
+      recognition.stop();
+      isListening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micLabel').textContent = 'Starta mikrofonen';
+      document.getElementById('schemaArea').classList.remove('active');
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('notSupported').style.display = 'block';
+    } else {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'sv-SE';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let lastProcessedSign = -1;
+      let lastSignTime = 0;
+
+      recognition.onresult = (event) => {
+        let fullText = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullText += event.results[i][0].transcript;
+        }
+
+        document.getElementById('transcript').innerHTML = highlightWords(fullText);
+
+        const latest = event.results[event.results.length - 1][0].transcript;
+        const signIndex = findSign(latest);
+
+        if (signIndex !== -1) {
+          const now = Date.now();
+          if (signIndex !== lastProcessedSign || now - lastSignTime > 2000) {
+            addToSchema(signs[signIndex]);
+            lastProcessedSign = signIndex;
+            lastSignTime = now;
+          }
+        }
+      };
+
+      recognition.onend = () => {
+        if (isListening) recognition.start();
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === 'no-speech') return;
+        if (event.error === 'not-allowed') {
+          document.getElementById('micLabel').textContent = 'Mikrofonåtkomst nekad';
+          isListening = false;
+          document.getElementById('micBtn').classList.remove('listening');
+        }
+      };
+    }
+  </script>
+</body>
+</html>
