@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bildstöd i realtid — prototyp</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FAF9F6;
+      color: #2C2925;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      text-align: center;
+      padding: 2rem 1rem 1rem;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      color: #2C2925;
+      margin-bottom: 0.4rem;
+    }
+
+    header p {
+      color: #918B82;
+      font-size: 1rem;
+    }
+
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+      padding: 1rem;
+    }
+
+    /* Sign display */
+    .sign-display {
+      width: 100%;
+      min-height: 380px;
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .sign-display.active {
+      border-color: #6B8CA6;
+      box-shadow: 0 0 0 3px rgba(107, 140, 166, 0.15);
+    }
+
+    .sign-display .waiting {
+      color: #918B82;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .sign-display .waiting .icon {
+      margin-bottom: 1rem;
+      opacity: 0.35;
+    }
+
+    .sign-display .waiting .icon img {
+      width: 80px;
+      height: 80px;
+      opacity: 0.5;
+    }
+
+    .sign-card {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      animation: signPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .sign-card.visible {
+      display: flex;
+    }
+
+    @keyframes signPop {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .sign-card .sign-image {
+      width: 220px;
+      height: 220px;
+      border-radius: 24px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.2rem;
+      border: 2px solid #E0DBD3;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+
+    .sign-card .sign-image img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .sign-card .sign-word {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #2C2925;
+      margin-bottom: 0.3rem;
+    }
+
+    .sign-card .sign-subtitle {
+      color: #918B82;
+      font-size: 0.85rem;
+    }
+
+    /* Mic button */
+    .mic-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .mic-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      background: #6B8CA6;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+
+    .mic-btn:hover {
+      background: #5A7B95;
+      transform: scale(1.05);
+    }
+
+    .mic-btn.listening {
+      background: #C75A3A;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(199, 90, 58, 0.4); }
+      50% { box-shadow: 0 0 0 15px rgba(199, 90, 58, 0); }
+    }
+
+    .mic-label {
+      margin-top: 0.7rem;
+      font-size: 0.9rem;
+      color: #918B82;
+    }
+
+    /* Transcript */
+    .transcript {
+      width: 100%;
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      min-height: 60px;
+      margin-bottom: 1.5rem;
+    }
+
+    .transcript-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #918B82;
+      margin-bottom: 0.4rem;
+    }
+
+    .transcript-text {
+      font-size: 1.1rem;
+      color: #2C2925;
+      line-height: 1.5;
+    }
+
+    .transcript-text .highlight {
+      background: #6B8CA6;
+      color: white;
+      padding: 0.1em 0.4em;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    /* Word bank */
+    .word-bank {
+      width: 100%;
+      margin-bottom: 2rem;
+    }
+
+    .word-bank-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #918B82;
+      margin-bottom: 0.7rem;
+    }
+
+    .word-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .word-chip {
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 10px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.9rem;
+      color: #5C564F;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .word-chip:hover {
+      border-color: #6B8CA6;
+      color: #2C2925;
+      background: white;
+    }
+
+    .word-chip img {
+      width: 28px;
+      height: 28px;
+      object-fit: contain;
+    }
+
+    .not-supported {
+      text-align: center;
+      padding: 3rem;
+      color: #C75A3A;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 1rem;
+      color: #918B82;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    footer a {
+      color: #6B8CA6;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Bildstöd i realtid</h1>
+    <p>Prata — och piktogrammet visas automatiskt på skärmen</p>
+  </header>
+
+  <div class="main" id="app">
+    <div class="sign-display" id="signDisplay">
+      <div class="waiting" id="waiting">
+        <div class="icon">
+          <img src="https://static.arasaac.org/pictograms/6572/6572_500.png" alt="">
+        </div>
+        <div>Tryck på mikrofonen och börja prata.<br>Piktogrammet visas när ett nyckelord hörs.</div>
+      </div>
+      <div class="sign-card" id="signCard">
+        <div class="sign-image">
+          <img id="signImage" src="" alt="">
+        </div>
+        <div class="sign-word" id="signWord"></div>
+        <div class="sign-subtitle" id="signSubtitle"></div>
+      </div>
+    </div>
+
+    <div class="mic-section">
+      <button class="mic-btn" id="micBtn" onclick="toggleListening()">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      </button>
+      <div class="mic-label" id="micLabel">Starta mikrofonen</div>
+    </div>
+
+    <div class="transcript">
+      <div class="transcript-label">Hör</div>
+      <div class="transcript-text" id="transcript">—</div>
+    </div>
+
+    <div class="word-bank">
+      <div class="word-bank-label">Ord i bildbanken (klicka för att visa)</div>
+      <div class="word-chips" id="wordChips"></div>
+    </div>
+  </div>
+
+  <footer>Piktogram från <a href="https://arasaac.org" target="_blank">ARASAAC</a> — Creative Commons BY-NC-SA</footer>
+
+  <div class="not-supported" id="notSupported" style="display:none;">
+    <p>Din webbläsare stöder inte taligenkänning.<br>Testa i Google Chrome på en dator.</p>
+  </div>
+
+  <script>
+    const pictoBase = 'https://static.arasaac.org/pictograms';
+
+    const signs = [
+      // Presentation / intro
+      {
+        words: ['hej', 'hejdå', 'hallå'],
+        id: 6522,
+        label: 'Hej',
+        subtitle: 'Hälsning'
+      },
+      {
+        words: ['jag'],
+        id: 7185,
+        label: 'Jag',
+        subtitle: 'Person'
+      },
+      {
+        words: ['heter', 'namn'],
+        id: 7061,
+        label: 'Namn',
+        subtitle: 'Identitet'
+      },
+      {
+        words: ['idag', 'dagen'],
+        id: 7131,
+        label: 'Idag',
+        subtitle: 'Tid'
+      },
+      {
+        words: ['lära', 'lär', 'lära sig', 'lärt'],
+        id: 37810,
+        label: 'Lära',
+        subtitle: 'Kunskap'
+      },
+      {
+        words: ['använda', 'använder', 'använd'],
+        id: 15485,
+        label: 'Använda',
+        subtitle: 'Verktyg'
+      },
+      {
+        words: ['ai', 'artificiell intelligens'],
+        id: 39704,
+        label: 'AI',
+        subtitle: 'Teknik'
+      },
+      {
+        words: ['undervisning', 'undervisningen', 'undervisa', 'undervisar'],
+        id: 26809,
+        label: 'Undervisa',
+        subtitle: 'Pedagogik'
+      },
+      {
+        words: ['skola', 'skolan'],
+        id: 32446,
+        label: 'Skola',
+        subtitle: 'Plats'
+      },
+      {
+        words: ['lärare', 'läraren', 'lärarna'],
+        id: 6556,
+        label: 'Lärare',
+        subtitle: 'Person'
+      },
+      {
+        words: ['dator', 'datorn', 'datorerna', 'datorer'],
+        id: 7190,
+        label: 'Dator',
+        subtitle: 'Teknik'
+      },
+      // Grundord
+      {
+        words: ['ja', 'japp', 'absolut', 'precis'],
+        id: 5584,
+        label: 'Ja',
+        subtitle: 'Bekräftelse'
+      },
+      {
+        words: ['nej', 'nä'],
+        id: 5526,
+        label: 'Nej',
+        subtitle: 'Nekande'
+      },
+      {
+        words: ['tack', 'tackar'],
+        id: 8129,
+        label: 'Tack',
+        subtitle: 'Artighet'
+      },
+      {
+        words: ['bra', 'duktig', 'fint', 'toppen'],
+        id: 4581,
+        label: 'Bra',
+        subtitle: 'Positivt'
+      },
+      {
+        words: ['hjälp', 'hjälpa', 'hjälper'],
+        id: 32648,
+        label: 'Hjälp',
+        subtitle: 'Be om stöd'
+      },
+      {
+        words: ['stopp', 'sluta'],
+        id: 7196,
+        label: 'Stopp',
+        subtitle: 'Avbryt'
+      },
+      {
+        words: ['titta', 'se', 'kolla'],
+        id: 6564,
+        label: 'Titta',
+        subtitle: 'Uppmärksamhet'
+      },
+      {
+        words: ['lyssna', 'lyssnar'],
+        id: 6572,
+        label: 'Lyssna',
+        subtitle: 'Uppmärksamhet'
+      },
+      {
+        words: ['färdig', 'klar', 'klart'],
+        id: 28429,
+        label: 'Färdig',
+        subtitle: 'Avslut'
+      },
+      // Aktiviteter
+      {
+        words: ['läsa', 'läser', 'läs'],
+        id: 7141,
+        label: 'Läsa',
+        subtitle: 'Aktivitet'
+      },
+      {
+        words: ['skriva', 'skriver', 'skriv'],
+        id: 2380,
+        label: 'Skriva',
+        subtitle: 'Aktivitet'
+      },
+      {
+        words: ['rita', 'ritar'],
+        id: 8088,
+        label: 'Rita',
+        subtitle: 'Aktivitet'
+      },
+      {
+        words: ['tänka', 'tänker', 'tänk', 'fundera', 'funderar'],
+        id: 38796,
+        label: 'Tänka',
+        subtitle: 'Kognition'
+      },
+      {
+        words: ['prata', 'pratar', 'berätta', 'berättar'],
+        id: 6517,
+        label: 'Prata',
+        subtitle: 'Kommunikation'
+      },
+      {
+        words: ['fråga', 'frågar', 'frågor'],
+        id: 9847,
+        label: 'Fråga',
+        subtitle: 'Kommunikation'
+      },
+      {
+        words: ['svara', 'svarar', 'svar'],
+        id: 9031,
+        label: 'Svara',
+        subtitle: 'Kommunikation'
+      },
+      {
+        words: ['visa', 'visar'],
+        id: 16823,
+        label: 'Visa',
+        subtitle: 'Kommunikation'
+      },
+      {
+        words: ['arbeta', 'arbetar', 'jobba', 'jobbar'],
+        id: 6624,
+        label: 'Arbeta',
+        subtitle: 'Aktivitet'
+      },
+      {
+        words: ['göra', 'gör'],
+        id: 32751,
+        label: 'Göra',
+        subtitle: 'Aktivitet'
+      },
+      // Saker
+      {
+        words: ['bok', 'boken', 'böcker'],
+        id: 25191,
+        label: 'Bok',
+        subtitle: 'Föremål'
+      },
+      {
+        words: ['penna', 'pennan'],
+        id: 10313,
+        label: 'Penna',
+        subtitle: 'Föremål'
+      },
+      {
+        words: ['bild', 'bilden', 'bilder'],
+        id: 2360,
+        label: 'Bild',
+        subtitle: 'Föremål'
+      },
+      {
+        words: ['text', 'texten', 'texter'],
+        id: 37340,
+        label: 'Text',
+        subtitle: 'Föremål'
+      },
+      {
+        words: ['grupp', 'gruppen', 'grupper'],
+        id: 25790,
+        label: 'Grupp',
+        subtitle: 'Socialt'
+      },
+      {
+        words: ['uppgift', 'uppgiften', 'uppgifter'],
+        id: 25062,
+        label: 'Uppgift',
+        subtitle: 'Skola'
+      },
+      // Beskrivande
+      {
+        words: ['stor', 'stort', 'stora'],
+        id: 4658,
+        label: 'Stor',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['liten', 'litet', 'lilla', 'lilla'],
+        id: 4716,
+        label: 'Liten',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['ny', 'nytt', 'nya'],
+        id: 11316,
+        label: 'Ny',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['svår', 'svårt', 'svåra', 'svårare'],
+        id: 4629,
+        label: 'Svår',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['lätt', 'enkelt', 'enkel', 'enkla'],
+        id: 4645,
+        label: 'Lätt',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['viktig', 'viktigt', 'viktiga'],
+        id: 11470,
+        label: 'Viktig',
+        subtitle: 'Beskrivning'
+      },
+      {
+        words: ['rätt', 'korrekt'],
+        id: 5397,
+        label: 'Rätt',
+        subtitle: 'Bedömning'
+      },
+      {
+        words: ['fel', 'felaktigt'],
+        id: 22198,
+        label: 'Fel',
+        subtitle: 'Bedömning'
+      },
+      // Tid
+      {
+        words: ['efter', 'efteråt', 'sedan'],
+        id: 32749,
+        label: 'Efter',
+        subtitle: 'Tid'
+      },
+      {
+        words: ['före', 'innan', 'först'],
+        id: 32745,
+        label: 'Före',
+        subtitle: 'Tid'
+      },
+      {
+        words: ['nu'],
+        id: 32747,
+        label: 'Nu',
+        subtitle: 'Tid'
+      },
+      {
+        words: ['rast', 'paus'],
+        id: 6604,
+        label: 'Rast',
+        subtitle: 'Tid'
+      },
+      // Socialt
+      {
+        words: ['tillsammans', 'ihop'],
+        id: 5367,
+        label: 'Tillsammans',
+        subtitle: 'Socialt'
+      },
+      {
+        words: ['kompis', 'kompisen', 'kompisar', 'vän'],
+        id: 25790,
+        label: 'Kompis',
+        subtitle: 'Socialt'
+      },
+      {
+        words: ['dela', 'delar'],
+        id: 38900,
+        label: 'Dela',
+        subtitle: 'Socialt'
+      },
+      {
+        words: ['diskutera', 'diskuterar', 'diskussion'],
+        id: 6477,
+        label: 'Diskutera',
+        subtitle: 'Kommunikation'
+      },
+      // Känslor
+      {
+        words: ['glad', 'glada', 'glatt'],
+        id: 35533,
+        label: 'Glad',
+        subtitle: 'Känsla'
+      },
+      {
+        words: ['ledsen', 'ledsna'],
+        id: 35545,
+        label: 'Ledsen',
+        subtitle: 'Känsla'
+      },
+      {
+        words: ['rädd', 'rädda'],
+        id: 39668,
+        label: 'Rädd',
+        subtitle: 'Känsla'
+      },
+      {
+        words: ['arg', 'arga', 'argt'],
+        id: 35539,
+        label: 'Arg',
+        subtitle: 'Känsla'
+      },
+      {
+        words: ['trött', 'trötta'],
+        id: 35537,
+        label: 'Trött',
+        subtitle: 'Känsla'
+      },
+      // Workshop-rutiner
+      {
+        words: ['lunch', 'lunchen'],
+        id: 4611,
+        label: 'Lunch',
+        subtitle: 'Rutin'
+      },
+      {
+        words: ['fika', 'fikar', 'fikapaus'],
+        id: 24479,
+        label: 'Fika',
+        subtitle: 'Rutin'
+      },
+      {
+        words: ['kaffe', 'kaffet'],
+        id: 24479,
+        label: 'Kaffe',
+        subtitle: 'Rutin'
+      },
+      {
+        words: ['grupparbete', 'grupparbetet', 'grupper'],
+        id: 2260,
+        label: 'Grupparbete',
+        subtitle: 'Arbetsform'
+      },
+      {
+        words: ['individuellt', 'individuell', 'enskilt', 'själv', 'egen'],
+        id: 7253,
+        label: 'Individuellt',
+        subtitle: 'Arbetsform'
+      },
+      // Övrigt
+      {
+        words: ['idé', 'idén', 'idéer'],
+        id: 6019,
+        label: 'Idé',
+        subtitle: 'Kognition'
+      },
+      {
+        words: ['förstå', 'förstår', 'begripa', 'begriper'],
+        id: 7180,
+        label: 'Förstå',
+        subtitle: 'Kognition'
+      }
+    ];
+
+    function pictoUrl(id, size) {
+      return `${pictoBase}/${id}/${id}_${size || 500}.png`;
+    }
+
+    let recognition = null;
+    let isListening = false;
+    let hideTimeout = null;
+
+    // Build word chips
+    const chipsContainer = document.getElementById('wordChips');
+    signs.forEach((sign, i) => {
+      const chip = document.createElement('button');
+      chip.className = 'word-chip';
+      chip.innerHTML = `<img src="${pictoUrl(sign.id, 300)}" alt="${sign.label}"> ${sign.label}`;
+      chip.onclick = () => showSign(i);
+      chipsContainer.appendChild(chip);
+    });
+
+    function showSign(index) {
+      const sign = signs[index];
+      const display = document.getElementById('signDisplay');
+      const card = document.getElementById('signCard');
+      const waiting = document.getElementById('waiting');
+
+      document.getElementById('signImage').src = pictoUrl(sign.id, 500);
+      document.getElementById('signImage').alt = sign.label;
+      document.getElementById('signWord').textContent = sign.label;
+      document.getElementById('signSubtitle').textContent = sign.subtitle;
+
+      waiting.style.display = 'none';
+      card.classList.remove('visible');
+      void card.offsetWidth;
+      card.classList.add('visible');
+      display.classList.add('active');
+
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        display.classList.remove('active');
+      }, 4000);
+    }
+
+    function findSign(text) {
+      const words = text.toLowerCase().split(/\s+/);
+      for (let i = words.length - 1; i >= 0; i--) {
+        const word = words[i].replace(/[.,!?]/g, '');
+        for (let j = 0; j < signs.length; j++) {
+          if (signs[j].words.includes(word)) {
+            return j;
+          }
+        }
+      }
+      return -1;
+    }
+
+    function highlightWords(text) {
+      const allKeywords = signs.flatMap(s => s.words);
+      return text.replace(/\S+/g, (word) => {
+        const clean = word.toLowerCase().replace(/[.,!?]/g, '');
+        if (allKeywords.includes(clean)) {
+          return `<span class="highlight">${word}</span>`;
+        }
+        return word;
+      });
+    }
+
+    function toggleListening() {
+      if (isListening) stopListening();
+      else startListening();
+    }
+
+    function startListening() {
+      if (!recognition) return;
+      recognition.start();
+      isListening = true;
+      document.getElementById('micBtn').classList.add('listening');
+      document.getElementById('micLabel').textContent = 'Lyssnar...';
+    }
+
+    function stopListening() {
+      if (!recognition) return;
+      recognition.stop();
+      isListening = false;
+      document.getElementById('micBtn').classList.remove('listening');
+      document.getElementById('micLabel').textContent = 'Starta mikrofonen';
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('notSupported').style.display = 'block';
+    } else {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'sv-SE';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      let lastProcessedSign = -1;
+      let lastSignTime = 0;
+
+      recognition.onresult = (event) => {
+        let fullText = '';
+        for (let i = 0; i < event.results.length; i++) {
+          fullText += event.results[i][0].transcript;
+        }
+
+        document.getElementById('transcript').innerHTML = highlightWords(fullText);
+
+        const latest = event.results[event.results.length - 1][0].transcript;
+        const signIndex = findSign(latest);
+
+        if (signIndex !== -1) {
+          const now = Date.now();
+          if (signIndex !== lastProcessedSign || now - lastSignTime > 2000) {
+            showSign(signIndex);
+            lastProcessedSign = signIndex;
+            lastSignTime = now;
+          }
+        }
+      };
+
+      recognition.onend = () => {
+        if (isListening) recognition.start();
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === 'no-speech') return;
+        if (event.error === 'not-allowed') {
+          document.getElementById('micLabel').textContent = 'Mikrofonåtkomst nekad';
+          isListening = false;
+          document.getElementById('micBtn').classList.remove('listening');
+        }
+      };
+    }
+  </script>
+</body>
+</html>
