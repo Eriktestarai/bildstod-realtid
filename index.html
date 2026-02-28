@@ -289,7 +289,7 @@
     <div class="sign-display" id="signDisplay">
       <div class="waiting" id="waiting">
         <div class="icon">
-          <img src="https://static.arasaac.org/pictograms/6572/6572_500.png" alt="">
+          <img src="picto/6572.png" alt="">
         </div>
         <div>Tryck på mikrofonen och börja prata.<br>Piktogrammet visas när ett nyckelord hörs.</div>
       </div>
@@ -327,7 +327,7 @@
   </div>
 
   <script>
-    const pictoBase = 'https://static.arasaac.org/pictograms';
+    const pictoBase = 'picto';
 
     const signs = [
       // Presentation / intro
@@ -727,7 +727,7 @@
     ];
 
     function pictoUrl(id, size) {
-      return `${pictoBase}/${id}/${id}_${size || 500}.png`;
+      return `${pictoBase}/${id}.png`;
     }
 
     let recognition = null;
