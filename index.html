@@ -401,9 +401,8 @@
         <div class="sentence-strip-label">Mening</div>
         <button class="sentence-strip-clear" id="clearSentence" onclick="clearSentence()">Rensa</button>
       </div>
-      <div class="sentence-items" id="sentenceItems">
-        <span class="sentence-empty" id="sentenceEmpty">Bilderna samlas här allt eftersom du pratar...</span>
-      </div>
+      <div class="sentence-empty" id="sentenceEmpty">Bilderna samlas här allt eftersom du pratar...</div>
+      <div class="sentence-items" id="sentenceItems"></div>
     </div>
 
     <div class="mic-section">
@@ -1349,9 +1348,8 @@
       const empty = document.getElementById('sentenceEmpty');
 
       if (sentenceItems.length === 0) {
-        container.innerHTML = '';
-        container.appendChild(empty);
         empty.style.display = '';
+        container.innerHTML = '';
         return;
       }
 
