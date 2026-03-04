@@ -142,6 +142,93 @@
       font-size: 0.85rem;
     }
 
+    /* Sentence strip */
+    .sentence-strip {
+      width: 100%;
+      background: #FDFBF8;
+      border: 1px solid #E0DBD3;
+      border-radius: 12px;
+      padding: 0.8rem 1rem;
+      margin-bottom: 1.5rem;
+      min-height: 56px;
+    }
+
+    .sentence-strip-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .sentence-strip-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #918B82;
+    }
+
+    .sentence-strip-clear {
+      background: none;
+      border: none;
+      font-size: 0.75rem;
+      color: #918B82;
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .sentence-strip-clear:hover {
+      color: #C75A3A;
+      background: rgba(199, 90, 58, 0.08);
+    }
+
+    .sentence-items {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+
+    .sentence-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      animation: sentenceItemIn 0.3s ease;
+    }
+
+    @keyframes sentenceItemIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .sentence-item img {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      background: white;
+      border: 1px solid #E0DBD3;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .sentence-item span {
+      font-size: 0.65rem;
+      color: #5C564F;
+      font-weight: 500;
+      max-width: 60px;
+      text-align: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sentence-empty {
+      color: #C4BFB8;
+      font-size: 0.85rem;
+      font-style: italic;
+    }
+
     /* Mic button */
     .mic-section {
       display: flex;
@@ -306,6 +393,16 @@
         </div>
         <div class="sign-word" id="signWord"></div>
         <div class="sign-subtitle" id="signSubtitle"></div>
+      </div>
+    </div>
+
+    <div class="sentence-strip" id="sentenceStrip">
+      <div class="sentence-strip-header">
+        <div class="sentence-strip-label">Mening</div>
+        <button class="sentence-strip-clear" id="clearSentence" onclick="clearSentence()">Rensa</button>
+      </div>
+      <div class="sentence-items" id="sentenceItems">
+        <span class="sentence-empty" id="sentenceEmpty">Bilderna samlas här allt eftersom du pratar...</span>
       </div>
     </div>
 
@@ -1235,6 +1332,39 @@
       chipsContainer.appendChild(chip);
     });
 
+    let sentenceItems = [];
+
+    function addToSentence(sign) {
+      sentenceItems.push(sign);
+      renderSentence();
+    }
+
+    function clearSentence() {
+      sentenceItems = [];
+      renderSentence();
+    }
+
+    function renderSentence() {
+      const container = document.getElementById('sentenceItems');
+      const empty = document.getElementById('sentenceEmpty');
+
+      if (sentenceItems.length === 0) {
+        container.innerHTML = '';
+        container.appendChild(empty);
+        empty.style.display = '';
+        return;
+      }
+
+      empty.style.display = 'none';
+      container.innerHTML = '';
+      sentenceItems.forEach((sign) => {
+        const item = document.createElement('div');
+        item.className = 'sentence-item';
+        item.innerHTML = `<img src="${pictoUrl(sign.id, 300)}" alt="${sign.label}"><span>${sign.label}</span>`;
+        container.appendChild(item);
+      });
+    }
+
     function showSign(index) {
       const sign = signs[index];
       const display = document.getElementById('signDisplay');
@@ -1251,6 +1381,8 @@
       void card.offsetWidth;
       card.classList.add('visible');
       display.classList.add('active');
+
+      addToSentence(sign);
 
       clearTimeout(hideTimeout);
       hideTimeout = setTimeout(() => {
