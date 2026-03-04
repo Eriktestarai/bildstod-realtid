@@ -405,7 +405,7 @@
         </div>
       </div>
       <div class="sentence-empty" id="sentenceEmpty">Bilderna samlas här allt eftersom du pratar...</div>
-      <div class="sentence-items" id="sentenceItems"></div>
+      <div class="sentence-items" id="sentenceCards"></div>
     </div>
 
     <div class="mic-section">
@@ -1325,43 +1325,39 @@
     let hideTimeout = null;
 
     // Sentence strip state (same pattern as dagsschema)
-    let sentenceItems = [];
+    let sentenceWords = [];
 
     function addToSentence(sign) {
-      sentenceItems.push(sign);
-      renderSentence();
+      sentenceWords.push(sign);
+      document.getElementById('sentenceEmpty').style.display = 'none';
+      var box = document.getElementById('sentenceCards');
+      var item = document.createElement('div');
+      item.className = 'sentence-item';
+      var img = document.createElement('img');
+      img.src = pictoUrl(sign.id, 300);
+      img.alt = sign.label;
+      item.appendChild(img);
+      var txt = document.createElement('span');
+      txt.textContent = sign.label;
+      item.appendChild(txt);
+      box.appendChild(item);
     }
 
     function undoSentence() {
-      if (sentenceItems.length === 0) return;
-      sentenceItems.pop();
-      renderSentence();
+      if (sentenceWords.length === 0) return;
+      sentenceWords.pop();
+      var box = document.getElementById('sentenceCards');
+      if (box.lastChild) box.removeChild(box.lastChild);
+      if (sentenceWords.length === 0) {
+        document.getElementById('sentenceEmpty').style.display = '';
+      }
     }
 
     function clearSentence() {
-      if (sentenceItems.length === 0) return;
-      sentenceItems = [];
-      renderSentence();
-    }
-
-    function renderSentence() {
-      const container = document.getElementById('sentenceItems');
-      const empty = document.getElementById('sentenceEmpty');
-
-      if (sentenceItems.length === 0) {
-        empty.style.display = '';
-        container.innerHTML = '';
-        return;
-      }
-
-      empty.style.display = 'none';
-      container.innerHTML = '';
-      sentenceItems.forEach((sign) => {
-        const item = document.createElement('div');
-        item.className = 'sentence-item';
-        item.innerHTML = `<img src="${pictoUrl(sign.id, 300)}" alt="${sign.label}"><span>${sign.label}</span>`;
-        container.appendChild(item);
-      });
+      sentenceWords = [];
+      var box = document.getElementById('sentenceCards');
+      while (box.firstChild) box.removeChild(box.firstChild);
+      document.getElementById('sentenceEmpty').style.display = '';
     }
 
     // Build word chips — clicking adds to BOTH sign display AND sentence strip
